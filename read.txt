@@ -1,0 +1,16 @@
+
+服务端：
+start -> go listen -> go a.onNewSession(conn) -> (go recvLoop() go sendLoop() go waitgroup)
+      -> go queue.StartLoop()
+
+
+客户端：
+start -> go c.connect(address) -> (go recvLoop() go sendLoop() go waitgroup)
+      -> queue.StartLoop()
+
+
+
+q&a
+协程里面可以再go一个协程吗
+
+结构体变量赋值给接口
