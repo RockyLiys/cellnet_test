@@ -5,6 +5,7 @@ import (
 	"chapter13/chatbycellnet/cellnet/socket"
 
 	"fmt"
+	"reflect"
 )
 
 type MsgEvent struct {
@@ -12,6 +13,7 @@ type MsgEvent struct {
 	Msg interface{}
 }
 
+//post任务结点到 -> queue
 func invokeMsgFunc(ses cellnet.Session, f SessionMessageFunc, msg interface{}) {
 	q := ses.Peer().Queue()
 
@@ -35,9 +37,13 @@ type SessionMessageFunc func(ses cellnet.Session, raw interface{})
 
 func NewMessageCallback(f SessionMessageFunc) cellnet.EventFunc {
 
+	fmt.Println("NewMessageCallback")
 	return func(raw interface{}) interface{} {
-
+		fmt.Println("NewMessageCallback ", reflect.TypeOf(raw).Name())
+		//fmt.Println(reflect.TypeOf(f1).Name())
 		switch ev := raw.(type) {
+		
+
 		case socket.RecvEvent: // 接收数据事件
 			return onRecvLTVPacket(ev.Ses, f)
 		case socket.SendEvent: // 发送数据事件

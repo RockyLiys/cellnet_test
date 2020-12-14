@@ -17,6 +17,7 @@ type ChatACK struct {
 	ID      int64  // 发送者的ID
 }
 
+//init函数，外部包import这个包的时候自动调用这个函数
 func init() {
 
 	cellnet.RegisterMessageMeta("json", "proto.ChatREQ", reflect.TypeOf((*ChatREQ)(nil)).Elem(), 1)

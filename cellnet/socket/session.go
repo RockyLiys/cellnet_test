@@ -38,6 +38,7 @@ func (s *socketSession) ID() int64 {
 }
 
 func (s *socketSession) SetID(id int64) {
+	fmt.Println("socketSession SetID ", id)
 	s.id = id
 }
 

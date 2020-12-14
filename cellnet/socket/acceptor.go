@@ -10,8 +10,8 @@ import (
 
 // 接受器
 type socketAcceptor struct {
-	socketPeer
-	internal.SessionManager
+	socketPeer  //可以理解为继承自sockPeer基类
+	internal.SessionManager  //这个是接口类型，保存的是&sesMgr{} 总管理类
 
 	// 保存侦听器
 	l net.Listener
@@ -82,7 +82,7 @@ func (a *socketAcceptor) Stop() {
 // 实例化一个侦听器
 func NewAcceptor(f cellnet.EventFunc, q cellnet.EventQueue) cellnet.Peer {
 	p := &socketAcceptor{
-		SessionManager: internal.NewSessionManager(),
+		SessionManager: internal.NewSessionManager(), //&sesMgr{} 已实例化总会话管理类
 	}
 
 	p.queue = q

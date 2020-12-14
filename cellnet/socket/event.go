@@ -2,6 +2,8 @@ package socket
 
 import "chapter13/chatbycellnet/cellnet"
 
+//各种触发事件类型
+
 // 会话开始接收数据事件
 type RecvEvent struct {
 	Ses cellnet.Session

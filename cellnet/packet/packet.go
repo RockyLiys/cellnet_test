@@ -14,7 +14,7 @@ func RecvVariableLengthPacket(inputStream io.Reader) (pktReader PacketReader, er
 	var sizeBuffer = make([]byte, LengthSize)
 
 	// 持续读取Size直到读到为止
-	_, err = io.ReadFull(inputStream, sizeBuffer)
+	_, err = io.ReadFull(inputStream, sizeBuffer) //读取包头2字节，代表长度
 
 	// 发生错误时返回
 	if err != nil {

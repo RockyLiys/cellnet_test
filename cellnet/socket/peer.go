@@ -45,5 +45,7 @@ func (s *socketPeer) fireEvent(ev interface{}) interface{} {
 		return nil
 	}
 
+	//调用回调函数，写入总事件队列
+	//type EventFunc func(interface{}) interface{}
 	return s.eventFunc(ev)
 }

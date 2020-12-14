@@ -57,12 +57,22 @@ func main() {
 	// 创建事件队列
 	queue := cellnet.NewEventQueue()
 
+	//func NewConnector(f cellnet.EventFunc, q cellnet.EventQueue) cellnet.Peer
 	// 创建一个连接器，传入消息处理的响应函数和事件队列
 	peer := socket.NewConnector(packet.NewMessageCallback(onMessage), queue)
 
-	// 发起连接
-	peer.Start("127.0.0.1:8801")
+	//cellnet.Peer
+	fmt.Printf("%T\n", peer)
 
+	//接口转换 cellnet.Peer -> cellnet.Session
+	s := peer.(interface {
+		Session1() cellnet.Session
+	}).Session1()
+	//fmt.Printf("%T\n", s)
+
+	// 发起连接
+	c := peer.Start("127.0.0.1:8801")
+	fmt.Printf("c %T\n", c)
 	// 设置peer的名称
 	peer.SetName("client")
 
@@ -74,9 +84,11 @@ func main() {
 
 		// 使用peer的获取会话
 		ses := peer.(interface {
-			Session() cellnet.Session
-		}).Session()
-
+			Session1() cellnet.Session
+		}).Session1()
+		
+		//ses := peer.Session()
+		//ses := peer.ses //???
 		// 发送使用回车输入的字符串
 		ses.Send(&proto.ChatREQ{
 			Content: str,

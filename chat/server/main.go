@@ -11,6 +11,8 @@ import (
 
 var log = golog.New("main")
 
+//onMessage会被内部事件流调用
+//type SessionMessageFunc func(ses cellnet.Session, raw interface{})
 func onMessage(ses cellnet.Session, raw interface{}) {
 
 	switch ev := raw.(type) {
@@ -18,6 +20,7 @@ func onMessage(ses cellnet.Session, raw interface{}) {
 		log.Infoln("client accepted: ", ses.ID())
 	case packet.MsgEvent:
 
+		//接口类型转换为结构体指针类型
 		msg := ev.Msg.(*proto.ChatREQ)
 
 		ack := proto.ChatACK{
@@ -53,6 +56,7 @@ func main() {
 
 	// 开启事件循环
 	queue.StartLoop()
+	fmt.Println("after queue.StartLoop()")
 
 	// 等待循环退出
 	queue.Wait()

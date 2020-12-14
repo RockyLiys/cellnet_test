@@ -2,7 +2,7 @@ package cellnet
 
 import (
 	"runtime/debug"
-	//"fmt"
+	"fmt"
 	//"reflect"
 )
 
@@ -22,7 +22,7 @@ type EventQueue interface {
 }
 
 type eventQueue struct {
-	queue chan func()
+	queue chan func() //需要处理的事件队列
 
 	exitSignal chan int
 
@@ -62,13 +62,13 @@ func (q *eventQueue) protectedCall(callback func()) {
 		}()
 	}
 
-	//fmt.Println("callback  ", reflect.TypeOf(callback).Name(), reflect.TypeOf(callback).Kind())
-	callback()
+	fmt.Println("callback  消费任务")
+	callback() //不用带入参数？ 因为callback是一个匿名函数 func() { f(ses, msg) }
 }
 
 // 开启事件循环
 func (q *eventQueue) StartLoop() {
-
+	//消费者
 	go func() {
 		for callback := range q.queue {
 			q.protectedCall(callback)
@@ -83,7 +83,7 @@ func (q *eventQueue) StopLoop(result int) {
 
 // 等待退出消息
 func (q *eventQueue) Wait() int {
-	return <-q.exitSignal
+	return <-q.exitSignal //阻塞的读通道，即直到通道内写入了退出信号
 }
 
 const DefaultQueueSize = 100

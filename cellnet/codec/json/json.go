@@ -30,4 +30,5 @@ func init() {
 
 	// 注册编码器
 	cellnet.RegisterCodec(new(jsonCodec))
+	//func RegisterCodec(c Codec)
 }

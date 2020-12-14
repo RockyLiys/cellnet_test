@@ -1,0 +1,282 @@
+cellnet源码分析
+需要深入理解go结构体、结构体嵌套(组合)、
+接口、空接口、接口结构体指针转换、接口之间转换、匿名接口、
+匿名函数做函数参数、做返回值、
+go协程、同步机制(WaitGroup)
+
+
+一、几个结构体的包含关系
+// 通讯端共享的数据
+type socketPeer struct {
+	// 事件处理函数回调
+	eventFunc cellnet.EventFunc
+
+	// 事件队列（可选）
+	queue cellnet.EventQueue
+
+	// 单独保存的保存cellnet.Peer接口
+	peerInterface cellnet.Peer //后面这样使用: peerInterface = &socketAcceptor{}
+
+	name string
+
+	address string
+}
+// 接受器
+type socketAcceptor struct {
+	socketPeer  //可以理解为继承自sockPeer基类
+	internal.SessionManager  //这个是接口类型，保存的是&sesMgr{} 总管理类
+
+	// 保存侦听器
+	l net.Listener
+
+	// 侦听器的停止同步
+	wg sync.WaitGroup
+}
+type socketConnector struct {
+	socketPeer //内嵌匿名结构体
+	internal.SessionManager  //对于连接对象，这个总管理类无用，因为不需要管理所有连接对象
+
+	ses cellnet.Session //type socketSession struct
+}
+// Socket会话
+type socketSession struct {
+
+	// Socket原始连接
+	conn net.Conn
+
+	// 退出同步器
+	exitSync sync.WaitGroup
+
+	// 归属的通讯端
+	peer *socketPeer
+
+	id int64
+
+	// 发送队列
+	sendChan chan interface{}
+}
+
+
+
+
+
+接口转换
+s *socketSession
+s.Peer().(internal.SessionManager).Add(s) //
+s.Peer().(internal.SessionManager).Remove(s)
+
+s.Peer() 返回值为cellnet.Peer类型
+func (s *socketSession)Peer() cellnet.Peer {
+    return s.peer.peerInterface //即&socketAcceptor{}
+}
+
+1.结构体嵌套组合共同实现一个接口，子类结构体指针可以赋值给接口类型吗？<可以>
+2.结构体内嵌一个匿名接口，另一个结构体指针赋值给这个匿名接口，
+那本结构体如何调用这个匿名接口的方法？
+
+var peer cellnet.Peer = &socketAcceptor{}
+manger := peer.(internal.SessionManager)
+manger.Add()
+
+接口cellnet.Peer -> 接口internal.SessionManager
+socketAcceptor包含internal.SessionManager(赋值为&sesMgr{}),可以调用sesMgr的方法Add、Remove
+
+    	ses cellnet.Session
+        ses.Peer().VisitSession(func(ses cellnet.Session) bool {
+
+			ses.Send(&ack)
+
+			return true
+		})
+
+
+
+
+二、事件调用流程
+
+
+type socketPeer struct {
+	// 事件处理函数回调
+	eventFunc cellnet.EventFunc
+	...
+}
+以服务端为例子
+func NewAcceptor(f cellnet.EventFunc, q cellnet.EventQueue) cellnet.Peer
+func NewConnector(f cellnet.EventFunc, q cellnet.EventQueue) cellnet.Peer {
+	p := &socketConnector{
+		SessionManager: internal.NewSessionManager(),
+	}
+	p.eventFunc = f
+	...
+}
+
+func onMessage(ses cellnet.Session, raw interface{}) 
+peer := socket.NewAcceptor(packet.NewMessageCallback(onMessage), queue)
+
+// 事件函数的定义
+type EventFunc func(interface{}) interface{}
+
+NewMessageCallback返回值是一个EventFunc类型的函数 即(func(interface{}) interface{})
+
+type SessionMessageFunc func(ses cellnet.Session, raw interface{})
+
+func NewMessageCallback(f SessionMessageFunc) cellnet.EventFunc {
+
+	fmt.Println("NewMessageCallback")
+	return func(raw interface{}) interface{} {
+		switch ev := raw.(type) {
+			case ...
+		}
+	}
+}
+
+...
+实际socketPeer结构体中cellnet.EventFunc类型的变量eventFunc被初始化为NewMessageCallback的返回值
+即匿名函数 	func(raw interface{}) interface{} {
+				switch ev := raw.(type) {
+					case ...
+				}
+			}
+这个匿名函数根据传入参数(空接口)的类型，进行类型断言，
+判断是哪种事件，再投放到总事件队列queue或者进行收发数据包
+switch部分如下：
+		case socket.RecvEvent: // 接收数据事件
+			return onRecvLTVPacket(ev.Ses, f)
+		case socket.SendEvent: // 发送数据事件
+			return onSendLTVPacket(ev.Ses, ev.Msg)
+		case socket.ConnectErrorEvent: // 连接错误事件
+			invokeMsgFunc(ev.Ses, f, raw)
+		case socket.SessionStartEvent: // 会话开始事件（连接上/接受连接）
+			invokeMsgFunc(ev.Ses, f, raw)
+		case socket.SessionClosedEvent: // 会话关闭事件
+			invokeMsgFunc(ev.Ses, f, raw)
+		case socket.SessionExitEvent: // 会话退出事件
+			invokeMsgFunc(ev.Ses, f, raw)
+		case socket.RecvErrorEvent: // 接收错误事件
+			log.Errorf("<%s> socket.RecvErrorEvent: %s\n", ev.Ses.Peer().Name(), ev.Error)
+			invokeMsgFunc(ev.Ses, f, raw)
+		case socket.SendErrorEvent: // 发送错误事件
+			log.Errorf("<%s> socket.SendErrorEvent: %s, msg: %#v\n", ev.Ses.Peer().Name(), ev.Error, ev.Msg)
+			invokeMsgFunc(ev.Ses, f, raw)
+		}
+
+如何调用？fireEvent函数(处理这个event事件, 即调用这个匿名函数)
+// socket包内部派发事件
+func (s *socketPeer) fireEvent(ev interface{}) interface{} {
+
+	if s.eventFunc == nil {
+		return nil
+	}
+
+	//调用回调函数，写入总事件队列/收发数据
+	//type EventFunc func(interface{}) interface{}
+	return s.eventFunc(ev)
+}
+
+再看invokeMsgFunc函数
+//post任务结点到 -> queue
+func invokeMsgFunc(ses cellnet.Session, f SessionMessageFunc, msg interface{}) {
+	q := ses.Peer().Queue()
+
+	// Peer有队列时，在队列线程调用用户处理函数
+	if q != nil {
+
+		fmt.Printf("q.Post\n")
+		q.Post(func() {
+
+			f(ses, msg)
+		})
+
+	} else {
+
+		// 在I/O线程调用用户处理函数
+		f(ses, msg)
+	}
+}
+直接post 匿名函数到总事件队列queue, 之后queue的协程函数会消费这个任务结点
+q.Post(func() {
+	f(ses, msg)
+})
+
+事件类型结构体 event.go：
+// 会话开始接收数据事件
+type RecvEvent struct {
+	Ses cellnet.Session
+}
+
+// 会话开始发送数据事件
+type SendEvent struct {
+	Ses cellnet.Session
+	Msg interface{} // 用户需要发送的消息
+}
+
+// 会话开始事件
+type SessionStartEvent struct {
+	Ses cellnet.Session
+}
+
+//数据包收发
+type MsgEvent struct {
+	Ses cellnet.Session
+	Msg interface{}
+}
+
+...
+
+看看几个实际调用
+// 会话开始工作
+s.peer.fireEvent(SessionStartEvent{s})
+// 在这里断开session与逻辑的所有关系
+s.peer.fireEvent(SessionExitEvent{s})
+// 发送接收消息，要求读取数据
+err := s.peer.fireEvent(RecvEvent{s})
+
+三、工作流程
+1、server
+    init proto 初始化通信协议(import包时自动注册)
+    new queue 创建总事件队列、包含所有网络事件
+    new accepter 创建接收器 
+    
+    queue.StartLoop 开启事件循环 {
+        go func() {
+		    for callback := range q.queue {
+			    q.protectedCall(callback)
+                /*
+                    protectedCall就是调用callback回调处理
+                    callback();
+                */
+		    }
+	    }()
+    }
+    
+    accepter.start("127.0.0.1:8801") //监听、启动服务器
+        -> go listen -> for {
+            go newsession -> {
+                每个会话维护一个发送channel: sendChan chan interface{}
+                s.start()
+                // 将会话添加到管理器
+                //接口变量转换 cellnet.Peer -> internal.SessionManager
+	            s.Peer().(internal.SessionManager).Add(s) //esById sync.Map // 使用Id关联会话
+                session 启动三个协程 
+                {
+                    go recvloop {
+                        发送 recvevent事件
+                        阻塞等待数据处理
+                    }
+                    go sendloop {
+                        阻塞等待读取 <发送channel>的数据
+                        写入总事件队列 
+                    }
+                    go wait {
+                        阻塞等待recvloop、sendloop两个协程结束
+                        s.Peer().(internal.SessionManager).Remove(s)
+                    }
+                }
+            }
+        }
+
+
+
+2、client
+
+

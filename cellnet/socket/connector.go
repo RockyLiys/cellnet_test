@@ -7,10 +7,10 @@ import (
 )
 
 type socketConnector struct {
-	socketPeer
-	internal.SessionManager
+	socketPeer //内嵌匿名结构体
+	internal.SessionManager  //对于连接对象，这个总管理类无用，因为不需要管理所有连接对象
 
-	ses cellnet.Session
+	ses cellnet.Session //type socketSession struct
 }
 
 func (c *socketConnector) Start(address string) cellnet.Peer {
@@ -22,7 +22,7 @@ func (c *socketConnector) Start(address string) cellnet.Peer {
 	return c
 }
 
-func (c *socketConnector) Session() cellnet.Session {
+func (c *socketConnector) Session1() cellnet.Session {
 	return c.ses
 }
 
@@ -37,7 +37,7 @@ func (c *socketConnector) connect(address string) {
 	conn, err := net.Dial("tcp", address)
 
 	ses := newSession(conn, &c.socketPeer)
-	c.ses = ses
+	c.ses = ses  //结构体指针赋值给接口类型, 为何不直接定义结构体变量
 
 	// 发生错误时退出
 	if err != nil {
@@ -47,7 +47,7 @@ func (c *socketConnector) connect(address string) {
 
 	log.Infof("#connected(%s) %s", c.Name(), c.address)
 
-	ses.start()
+	ses.start()//开启三个协程 recv-loop, send-loop, wait
 
 }
 

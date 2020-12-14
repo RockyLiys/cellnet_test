@@ -22,9 +22,11 @@ var (
 	metaByType = map[reflect.Type]*MessageMeta{}
 )
 
+//cellnet.RegisterMessageMeta("json", "proto.ChatREQ", reflect.TypeOf((*ChatREQ)(nil)).Elem(), 1)
 // 注册消息元信息
 func RegisterMessageMeta(codecName string, name string, msgType reflect.Type, id uint32) {
 
+	
 	meta := &MessageMeta{
 		Type:  msgType,
 		Name:  name,
@@ -49,6 +51,7 @@ func RegisterMessageMeta(codecName string, name string, msgType reflect.Type, id
 		panic(fmt.Sprintf("duplicate message meta register by type: %d", meta.ID))
 	}
 
+	fmt.Println("Register ok ", codecName,name,msgType,id)
 	metaByName[name] = meta
 	metaByID[meta.ID] = meta
 	metaByType[msgType] = meta

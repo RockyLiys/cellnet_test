@@ -4,6 +4,7 @@ import (
 	"chapter13/chatbycellnet/cellnet"
 	"sync"
 	"sync/atomic"
+	"fmt"
 )
 
 // 完整功能的会话管理
@@ -25,6 +26,8 @@ type sesMgr struct {
 func (self *sesMgr) Add(ses cellnet.Session) {
 
 	id := atomic.AddInt64(&self.sesIDGen, 1)
+
+	fmt.Println("sesIDGen ", id)
 
 	self.count = atomic.AddInt64(&self.count, 1)
 
@@ -78,5 +81,5 @@ func (self *sesMgr) SessionCount() int {
 }
 
 func NewSessionManager() SessionManager {
-	return &sesMgr{}
+	return &sesMgr{} //SessionManager(接口类型) = &sesMgr{}(结构体指针)
 }
