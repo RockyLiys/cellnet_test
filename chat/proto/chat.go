@@ -27,8 +27,8 @@ func init() {
 	//fmt.Println("type:", reflect.TypeOf((*ChatREQ)(nil)).Elem()) //proto.ChatREQ
 	//cellnet.RegisterMessageMeta("json", "proto.ChatREQ", reflect.TypeOf((*ChatREQ)(nil)).Elem(), 1)
 	//cellnet.RegisterMessageMeta("json", "proto.ChatACK", reflect.TypeOf((*ChatACK)(nil)).Elem(), 2)
-	cellnet.RegisterMessageMeta("pb", "proto.ChatREQ", reflect.TypeOf((*ChatREQ)(nil)).Elem(), 3)
-	cellnet.RegisterMessageMeta("pb", "proto.ChatACK", reflect.TypeOf((*ChatACK)(nil)).Elem(), 4)
+	cellnet.RegisterMessageMeta("pb", "proto.ChatREQ", reflect.TypeOf((*ChatREQ)(nil)).Elem(), 1)
+	cellnet.RegisterMessageMeta("pb", "proto.ChatACK", reflect.TypeOf((*ChatACK)(nil)).Elem(), 2)
 
 	//ChatREQ *p = (ChatREQ*)(NULL);//p->method();
 }
