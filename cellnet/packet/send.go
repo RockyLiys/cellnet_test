@@ -1,7 +1,7 @@
 package packet
 
 import (
-	"chapter13/chatbycellnet/cellnet"
+	"cellnet"
 	"net"
 )
 

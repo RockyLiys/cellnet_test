@@ -1,6 +1,6 @@
 package socket
 
-import "chapter13/chatbycellnet/cellnet"
+import "cellnet"
 
 // 通讯端共享的数据
 type socketPeer struct {
@@ -47,5 +47,6 @@ func (s *socketPeer) fireEvent(ev interface{}) interface{} {
 
 	//调用回调函数，写入总事件队列
 	//type EventFunc func(interface{}) interface{}
+	//s.eventFunc就是NewMessageCallback的返回值，一个匿名函数func(raw interface{}) interface{}
 	return s.eventFunc(ev)
 }

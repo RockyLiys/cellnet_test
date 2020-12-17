@@ -2,14 +2,15 @@ package main
 
 import (
 	"bufio"
-	"chapter13/chatbycellnet/cellnet"
-	"chapter13/chatbycellnet/cellnet/packet"
-	"chapter13/chatbycellnet/cellnet/socket"
-	"chapter13/chatbycellnet/chat/proto"
+	"cellnet"
+	"cellnet/packet"
+	"cellnet/socket"
+	"chat/proto"
 	"fmt"
-	"github.com/davyxu/golog"
 	"os"
 	"strings"
+
+	"github.com/davyxu/golog"
 )
 
 var log = golog.New("main")
@@ -65,7 +66,7 @@ func main() {
 	fmt.Printf("%T\n", peer)
 
 	//接口转换 cellnet.Peer -> cellnet.Session
-	s := peer.(interface {
+	peer.(interface {
 		Session1() cellnet.Session
 	}).Session1()
 	//fmt.Printf("%T\n", s)
@@ -86,7 +87,7 @@ func main() {
 		ses := peer.(interface {
 			Session1() cellnet.Session
 		}).Session1()
-		
+
 		//ses := peer.Session()
 		//ses := peer.ses //???
 		// 发送使用回车输入的字符串

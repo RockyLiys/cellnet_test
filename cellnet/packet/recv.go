@@ -1,9 +1,9 @@
 package packet
 
 import (
-	"chapter13/chatbycellnet/cellnet"
-	"net"
+	"cellnet"
 	"fmt"
+	"net"
 )
 
 // 接收Length-Type-Value格式的封包流程
@@ -32,7 +32,7 @@ func onRecvLTVPacket(ses cellnet.Session, f SessionMessageFunc) error {
 
 	fmt.Println("msgid ", uint32(msgid))
 	// 将字节数组和消息ID用户解出消息
-	msg, err := cellnet.DecodeMessage(uint32(msgid), pktReader.RemainBytes())
+	msg, err := cellnet.DecodeMessage(uint32(msgid), pktReader.RemainBytes()) //从剩余的字节缓存解析完整的msg
 	if err != nil {
 		return err
 	}

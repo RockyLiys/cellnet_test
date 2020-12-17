@@ -9,7 +9,7 @@ import (
 
 // 消息元信息
 type MessageMeta struct {
-	Type  reflect.Type // 消息类型
+	Type  reflect.Type // 消息类型 //func (v Value) Type() Type
 	Name  string       // 消息名称
 	ID    uint32       // 消息ID
 	Codec Codec        // 消息用到的编码

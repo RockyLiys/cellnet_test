@@ -1,14 +1,14 @@
 package socket
 
 import (
-	"chapter13/chatbycellnet/cellnet"
-	"chapter13/chatbycellnet/cellnet/internal"
+	"cellnet"
+	"cellnet/internal"
 	"net"
 )
 
 type socketConnector struct {
-	socketPeer //内嵌匿名结构体
-	internal.SessionManager  //对于连接对象，这个总管理类无用，因为不需要管理所有连接对象
+	socketPeer              //内嵌匿名结构体
+	internal.SessionManager //对于连接对象，这个总管理类无用，因为不需要管理所有连接对象
 
 	ses cellnet.Session //type socketSession struct
 }
@@ -37,7 +37,7 @@ func (c *socketConnector) connect(address string) {
 	conn, err := net.Dial("tcp", address)
 
 	ses := newSession(conn, &c.socketPeer)
-	c.ses = ses  //结构体指针赋值给接口类型, 为何不直接定义结构体变量
+	c.ses = ses //结构体指针赋值给接口类型, 为何不直接定义结构体变量
 
 	// 发生错误时退出
 	if err != nil {
@@ -47,7 +47,7 @@ func (c *socketConnector) connect(address string) {
 
 	log.Infof("#connected(%s) %s", c.Name(), c.address)
 
-	ses.start()//开启三个协程 recv-loop, send-loop, wait
+	ses.start() //开启三个协程 recv-loop, send-loop, wait
 
 }
 

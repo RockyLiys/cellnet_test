@@ -1,8 +1,8 @@
 package socket
 
 import (
-	"chapter13/chatbycellnet/cellnet"
-	"chapter13/chatbycellnet/cellnet/internal"
+	"cellnet"
+	"cellnet/internal"
 	"io"
 	"net"
 	"sync"
@@ -60,9 +60,10 @@ func (s *socketSession) Send(msg interface{}) {
 func (s *socketSession) recvLoop() {
 
 	for {
-
+		//fmt.Println("before recvloop")
 		// 发送接收消息，要求读取数据
-		err := s.peer.fireEvent(RecvEvent{s})
+		err := s.peer.fireEvent(RecvEvent{s}) //cellnet.Session = *socketSession
+		//fmt.Println("after recvloop")
 
 		// 连接断开
 		if err == io.EOF {
@@ -92,7 +93,7 @@ func (s *socketSession) sendLoop() {
 
 		// 要求发送数据
 		err := s.peer.fireEvent(SendEvent{s, msg})
-
+		fmt.Println("sendevent")
 		// 发送错误时派发事件
 		if err != nil {
 			s.peer.fireEvent(SendErrorEvent{s, err.(error), msg})
@@ -137,10 +138,10 @@ func (s *socketSession) start() {
 
 	go func() {
 
-		fmt.Println("go func wait sendloop recloop")
+		//fmt.Println("before wait")
 		// 等待2个任务结束
 		s.exitSync.Wait()
-		fmt.Println("after go func wait sendloop recloop")
+		//fmt.Println("after wait")
 
 		// 在这里断开session与逻辑的所有关系
 		s.peer.fireEvent(SessionExitEvent{s})

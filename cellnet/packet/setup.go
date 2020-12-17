@@ -1,8 +1,8 @@
 package packet
 
 import (
-	"chapter13/chatbycellnet/cellnet"
-	"chapter13/chatbycellnet/cellnet/socket"
+	"cellnet"
+	"cellnet/socket"
 
 	"fmt"
 	"reflect"
@@ -39,10 +39,9 @@ func NewMessageCallback(f SessionMessageFunc) cellnet.EventFunc {
 
 	fmt.Println("NewMessageCallback")
 	return func(raw interface{}) interface{} {
-		fmt.Println("NewMessageCallback ", reflect.TypeOf(raw).Name())
+		fmt.Println("NewMessageCallback: ", reflect.TypeOf(raw).Name())
 		//fmt.Println(reflect.TypeOf(f1).Name())
 		switch ev := raw.(type) {
-		
 
 		case socket.RecvEvent: // 接收数据事件
 			return onRecvLTVPacket(ev.Ses, f)

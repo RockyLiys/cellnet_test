@@ -1,8 +1,8 @@
 package socket
 
 import (
-	"chapter13/chatbycellnet/cellnet"
-	"chapter13/chatbycellnet/cellnet/internal"
+	"cellnet"
+	"cellnet/internal"
 	"fmt"
 	"net"
 	"sync"
@@ -10,8 +10,8 @@ import (
 
 // 接受器
 type socketAcceptor struct {
-	socketPeer  //可以理解为继承自sockPeer基类
-	internal.SessionManager  //这个是接口类型，保存的是&sesMgr{} 总管理类
+	socketPeer              //可以理解为继承自sockPeer基类
+	internal.SessionManager //这个是接口类型，保存的是&sesMgr{} 总管理类
 
 	// 保存侦听器
 	l net.Listener

@@ -1,6 +1,6 @@
 package socket
 
-import "chapter13/chatbycellnet/cellnet"
+import "cellnet"
 
 //各种触发事件类型
 

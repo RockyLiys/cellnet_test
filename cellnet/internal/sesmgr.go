@@ -1,10 +1,10 @@
 package internal
 
 import (
-	"chapter13/chatbycellnet/cellnet"
+	"cellnet"
+	"fmt"
 	"sync"
 	"sync/atomic"
-	"fmt"
 )
 
 // 完整功能的会话管理

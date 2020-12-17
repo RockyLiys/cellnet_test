@@ -1,7 +1,7 @@
 package json
 
 import (
-	"chapter13/chatbycellnet/cellnet"
+	"cellnet"
 	"encoding/json"
 )
 

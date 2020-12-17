@@ -1,11 +1,13 @@
 package main
 
 import (
-	"chapter13/chatbycellnet/cellnet"
-	"chapter13/chatbycellnet/cellnet/packet"
-	"chapter13/chatbycellnet/cellnet/socket"
-	"chapter13/chatbycellnet/chat/proto"
+	"cellnet"
+	"cellnet/packet"
+	"cellnet/socket"
+	"chat/proto"
 	"fmt"
+	"reflect"
+
 	"github.com/davyxu/golog"
 )
 
@@ -14,7 +16,7 @@ var log = golog.New("main")
 //onMessage会被内部事件流调用
 //type SessionMessageFunc func(ses cellnet.Session, raw interface{})
 func onMessage(ses cellnet.Session, raw interface{}) {
-
+	fmt.Println("onMessage: ", reflect.TypeOf(raw).Name())
 	switch ev := raw.(type) {
 	case socket.AcceptedEvent:
 		log.Infoln("client accepted: ", ses.ID())
@@ -56,7 +58,6 @@ func main() {
 
 	// 开启事件循环
 	queue.StartLoop()
-	fmt.Println("after queue.StartLoop()")
 
 	// 等待循环退出
 	queue.Wait()
